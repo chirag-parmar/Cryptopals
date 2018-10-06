@@ -1,27 +1,11 @@
 #include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
-int maxFind(unsigned freq[]){
-	int max = 0;
-	int maxpos = -1;
-
-	for(int j=0; j<256; j++){
-		if(freq[j] > max){
-			max = freq[j];
-			maxpos = j;
-		}
-	}
-	return maxpos;
-}
-
 char *int2hex(unsigned int decimal){
 
+	if(decimal>256) return "00";
 	char *dec2hex = "0123456789abcdef";
 
 	char *hexString;
@@ -34,18 +18,27 @@ char *int2hex(unsigned int decimal){
 	return hexString;
 }
 
+int hex2int(char ch)
+{
+    if (ch >= '0' && ch <= '9')
+        return ch - '0';
+    if (ch >= 'A' && ch <= 'F')
+        return ch - 'A' + 10;
+    if (ch >= 'a' && ch <= 'f')
+        return ch - 'a' + 10;
+    return -1;
+}
+
 char *hex2ASCII(char *hexString){
 	int hexLen = strlen(hexString);
-	char buf[3];
+	int decimal;
 	char *ASCIIString;
 	ASCIIString = (char *)malloc(hexLen/2 + 1);
 
 	for (int i=0; i<hexLen; i+=2){
-		buf[0] = hexString[i];
-		buf[1] = hexString[i+1];
-		buf[2] = '\0';
-
-		*ASCIIString = (char)strtol(buf, NULL, 16);
+		decimal = (hex2int(hexString[i])*16 + hex2int(hexString[i+1]));
+		if(decimal<128) *ASCIIString = (char)decimal;
+		else *ASCIIString = '0';
 		ASCIIString++;
 	}
 
@@ -57,7 +50,7 @@ char *hex2ASCII(char *hexString){
 
 char *fixedXOR(char *hexStringOne, char *hexStringTwo){
 
-	char *dec2hex = "0123456789abcdef";
+	char *dec2hex = "0123456789abcdef";	
 	int hexLen = strlen(hexStringOne);
 
 	if(hexLen<1) {
@@ -65,22 +58,11 @@ char *fixedXOR(char *hexStringOne, char *hexStringTwo){
 		return 0;
 	}
 
-	char buf[2];
-	long int charOne, charTwo;
-
 	char *XORString;
     XORString = (char *)malloc(hexLen+1);
 
-	for(int i=0; i<hexLen; i++){
-		buf[0] = hexStringOne[i];
-		buf[1] = '\0';
-		charOne = strtol(buf, NULL, 16);
-
-		buf[0] = hexStringTwo[i];
-		buf[1] = '\0';
-		charTwo = strtol(buf, NULL, 16);
-
-		*XORString = dec2hex[charOne^charTwo];
+	for(int i=0; i<hexLen; i++){		
+		*XORString = dec2hex[hex2int(hexStringOne[i])^hex2int(hexStringTwo[i])];
 		XORString++;
 	}
 
@@ -95,10 +77,10 @@ int scoreText(char *text){
 	int score = 0;
 	for(int i=0; i<strlen(text); i++){
 		if(!isalnum(text[i]) && !isspace(text[i]) && !ispunct(text[i])){
-			score -= 1;
+			score -= 5;
 		}
 		else if(isalpha(text[i])){
-			alphabet = tolower(text[i]);
+			alphabet = text[i];
 			switch(alphabet){
 				case 'e':
 					score += 13;
@@ -141,43 +123,29 @@ int scoreText(char *text){
 				break;
 			}
 		}
+		else if(isspace(text[i])){
+			score += 5;
+		}
 	}
 	return score;
 }
 
-char *breakSingleXOR(char *cipherText){
-
-	char *masterKey[13] = {"65","74","61","6f","69","6e","20","73","68","72","64","6c","75"};
+char *breakTheString(char *cipherText){
 
 	int hexLen = strlen(cipherText);
 	
-	int max;
 	int maxScore = 0, score;
 	char *hexUnitKey;
 	char *plainText;
 	char *finalText;
 	char Key[hexLen+1];
-	char buf[3];
-	unsigned frequency[256] = {0};
 
-	for(int i=0; i<hexLen; i=i+2){
-		buf[0] = cipherText[i];
-		buf[1] = cipherText[i+1];
-		buf[2] = '\0';
-		++frequency[strtol(buf,NULL,16)];
-	}
+	for(int i=0; i<256; i++){
+		hexUnitKey = int2hex(i);
 
-	for(int j=0; j<13; j++){
-		
-		max = maxFind(frequency);
-		frequency[max] = 0;
-		
-		hexUnitKey = fixedXOR(int2hex(max),masterKey[j]);
-		
 		strcpy(Key,hexUnitKey);
-		for(int i=0; i<hexLen; i=i+2){
-			Key[i] = hexUnitKey[0];
-			Key[i+1] = hexUnitKey[1];
+		for(int i=0; i<hexLen/2; i++){
+			strcat(Key, hexUnitKey);
 		}
 		Key[hexLen] = '\0';
 

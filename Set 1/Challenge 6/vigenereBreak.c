@@ -1,27 +1,8 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-
-char *hex2ASCII(char *hexString){
-	int hexLen = strlen(hexString);
-	char buf[3];
-	char *ASCIIString;
-	ASCIIString = (char *)malloc(hexLen/2 + 1);
-
-	for (int i=0; i<hexLen; i+=2){
-		buf[0] = hexString[i];
-		buf[1] = hexString[i+1];
-		buf[2] = '\0';
-
-		*ASCIIString = (char)strtol(buf, NULL, 16);
-		ASCIIString++;
-	}
-
-	*ASCIIString = '\0';
-	ASCIIString -= (hexLen/2);
-
-	return ASCIIString;
-}
+#include<ctype.h>
+#include<math.h>
 
 int hammingDistance(char *stringOne, char *stringTwo){
 
@@ -167,11 +148,12 @@ int findKeySize(char *hexString, int maxKeySize, int pickSize){
 
 				if(k>0){
 					//printf("%0.2f  ", (float)hammingDistance(subString[0],subString[k]));
-					distance += (double)hammingDistance(hex2ASCII(subString[0]),hex2ASCII(subString[k]))/i;
+					distance += (double)hammingDistance(subString[0],subString[k])/(i*8);
 				}
 
 				//printf("%s ", subString[k]);
 			}
+			free(subString);
 			distance /= (pickSize-1);
 			//printf("\n");
 			//printf("%0.2f\n", distance);
@@ -179,7 +161,6 @@ int findKeySize(char *hexString, int maxKeySize, int pickSize){
 			distance = 0.00;
 		}
 		tempDistance /= (hexLen/(i*pickSize));
-		printf("Key Size %d: %.5f\n", i, tempDistance);
 		distArray[i-2] = tempDistance;
 		tempDistance = 0.00;
 		hexString -= ((hexLen/(i*pickSize))*(i*pickSize));
@@ -196,6 +177,295 @@ int findKeySize(char *hexString, int maxKeySize, int pickSize){
 	}
 
 	return minimumPos+2;
+}
+
+int maxFind(unsigned freq[]){
+	int max = 0;
+	int maxpos = -1;
+
+	for(int j=0; j<256; j++){
+		if(freq[j] > max){
+			max = freq[j];
+			maxpos = j;
+		}
+	}
+	return maxpos;
+}
+
+char *int2hex(unsigned int decimal){
+
+	char *dec2hex = "0123456789abcdef";
+
+	char *hexString;
+	hexString = (char *)malloc(3);
+
+	hexString[1] = dec2hex[(decimal%16)];
+	hexString[0] = dec2hex[(decimal/16)];
+	hexString[2] = '\0';
+
+	return hexString;
+}
+
+char *hex2ASCII(char *hexString){
+	int hexLen = strlen(hexString);
+	char buf[3];
+	char *ASCIIString;
+	ASCIIString = (char *)malloc(hexLen/2 + 1);
+
+	for (int i=0; i<hexLen; i+=2){
+		buf[0] = hexString[i];
+		buf[1] = hexString[i+1];
+		buf[2] = '\0';
+
+		*ASCIIString = (char)strtol(buf, NULL, 16);
+		ASCIIString++;
+	}
+
+	*ASCIIString = '\0';
+	ASCIIString -= (hexLen/2);
+
+	return ASCIIString;
+}
+
+char *fixedXOR(char *hexStringOne, char *hexStringTwo){
+
+	char *dec2hex = "0123456789abcdef";
+	int hexLen = strlen(hexStringOne);
+
+	if(hexLen<1) {
+		printf("Exception: NULL Strings");
+		return 0;
+	}
+
+	char buf[2];
+	long int charOne, charTwo;
+
+	char *XORString;
+    XORString = (char *)malloc(hexLen+1);
+
+	for(int i=0; i<hexLen; i++){
+		buf[0] = hexStringOne[i];
+		buf[1] = '\0';
+		charOne = strtol(buf, NULL, 16);
+
+		buf[0] = hexStringTwo[i];
+		buf[1] = '\0';
+		charTwo = strtol(buf, NULL, 16);
+
+		*XORString = dec2hex[charOne^charTwo];
+		XORString++;
+	}
+
+	*XORString = '\0';
+	XORString -= (hexLen);
+
+	return XORString;
+}
+
+int scoreText(char *text){
+	char alphabet;
+	int score = 0;
+	for(int i=0; i<strlen(text); i++){
+		if(!isalnum(text[i]) && !isspace(text[i]) && !ispunct(text[i])){
+			score -= 1;
+		}
+		else if(isalpha(text[i])){
+			alphabet = tolower(text[i]);
+			switch(alphabet){
+				case 'e':
+					score += 13;
+					break;
+				case 't':
+					score += 12;
+					break;
+				case 'a':
+					score += 11;
+					break;
+				case 'o':
+					score += 10;
+					break;
+				case 'i':
+					score += 9;
+					break;
+				case 'n':
+					score += 8;
+					break;
+				case 's':
+					score += 7;
+					break;
+				case 'h':
+					score += 6;
+					break;
+				case 'r':
+					score += 5;
+					break;
+				case 'd':
+					score += 4;
+					break;
+				case 'l':
+					score += 3;
+					break;
+				case 'u':
+					score += 2;
+					break;
+				default:
+					score += 1;
+				break;
+			}
+		}
+		else if(isspace(text[i])){
+			score += 5;
+		}
+	}
+	return score;
+}
+
+// char *breakSingleXOR(char *cipherText){
+
+// 	char *masterKey[13] = {"65","74","61","6f","69","6e","20","73","68","72","64","6c","75"};
+
+// 	int hexLen = strlen(cipherText);
+	
+// 	int max;
+// 	int maxScore = 0, score;
+// 	char *hexUnitKey;
+// 	char *finalKey;
+// 	char *plainText;
+// 	char *finalText;
+// 	char Key[hexLen+1];
+// 	char buf[3];
+// 	unsigned frequency[256] = {0};
+
+// 	for(int i=0; i<hexLen; i=i+2){
+// 		buf[0] = cipherText[i];
+// 		buf[1] = cipherText[i+1];
+// 		buf[2] = '\0';
+// 		++frequency[strtol(buf,NULL,16)];
+// 	}
+
+// 	for(int j=0; j<13; j++){
+		
+// 		max = maxFind(frequency);
+// 		frequency[max] = 0;
+		
+// 		hexUnitKey = fixedXOR(int2hex(max),masterKey[j]);
+		
+// 		strcpy(Key,hexUnitKey);
+// 		for(int i=0; i<hexLen; i=i+2){
+// 			Key[i] = hexUnitKey[0];
+// 			Key[i+1] = hexUnitKey[1];
+// 		}
+// 		Key[hexLen] = '\0';
+
+// 		plainText = hex2ASCII(fixedXOR(Key, cipherText));
+// 		score = scoreText(plainText);
+// 		//if(!isalpha((char)hex2ASCII(hexUnitKey))) score = 0;
+// 		printf("%s %s %d\n", hexUnitKey, hex2ASCII(hexUnitKey), score);
+// 		if(score > maxScore){
+// 			maxScore = score;
+// 			finalText = plainText;
+// 			finalKey = hexUnitKey;
+// 		}
+// 	}
+// 	printf("\n");
+
+// 	//return finalText;
+// 	return finalKey;
+// }
+
+char *breakTheString(char *cipherText){
+
+	char *masterKey[13] = {"65","74","61","6f","69","6e","20","73","68","72","64","6c","75"};
+	float letterFrequencies[13] = {0.12702, 0.09056, 0.08167, 0.07507, 0.06966, 0.06749, 0.6500, 0.06327, 0.06094, 0.05987, 0.04253, 0.04025, 0.02758};
+
+	int hexLen = strlen(cipherText);
+	
+	int max, findJ;
+	int maxScore = 0, score;
+	float freq, minimum = 1.00;
+	char *hexUnitKey, *finalKey;
+	char Key[hexLen+1];
+	char buf[3], *temp;
+	unsigned frequency[256] = {0};
+
+	for(int i=0; i<hexLen; i=i+2){
+		buf[0] = cipherText[i];
+		buf[1] = cipherText[i+1];
+		buf[2] = '\0';
+		frequency[strtol(buf,NULL,16)] += 1;
+	}
+
+	for(int j=0; j<13; j++){
+		
+		max = maxFind(frequency);
+
+		freq = (float)(frequency[max]*2)/hexLen;
+
+		frequency[max] = 0;
+		findJ = 0;
+		minimum = 1;
+
+		for(int k=0; k<13; k++){
+			if (fabs(freq - letterFrequencies[k]) < minimum){
+				minimum = fabs(freq - letterFrequencies[k]);
+				findJ = k;
+			}
+		}
+
+		
+		hexUnitKey = fixedXOR(int2hex(max),masterKey[findJ]);
+		
+		strcpy(Key,hexUnitKey);
+		for(int i=0; i<hexLen; i=i+2){
+			Key[i] = hexUnitKey[0];
+			Key[i+1] = hexUnitKey[1];
+		}
+		Key[hexLen] = '\0';
+
+		score = scoreText(hex2ASCII(fixedXOR(Key, cipherText)));
+		temp = hex2ASCII(hexUnitKey);
+		//if(!isalpha(*temp) && !isspace(*temp)) score = 0;
+		if(score > maxScore){
+			maxScore = score;
+			finalKey = hexUnitKey;
+		}
+	}
+
+	return finalKey;
+}
+
+char *findKey(char *hexString, char keySize){
+
+	int hexLen = strlen(hexString);
+	int oddOneOuts = (hexLen%(keySize*2))/2;
+	int iterations = hexLen/keySize;
+	char *transStrings[keySize];
+	char *Key = (char *)malloc(keySize + 1);
+
+	for(int k=0; k<hexLen; k+=2){
+		if((k/2)<keySize){
+			transStrings[(k/2)%keySize] = (char *)malloc(iterations + 2);
+		}
+		*transStrings[(k/2)%keySize]++ = hexString[k];
+		*transStrings[(k/2)%keySize]++ = hexString[k+1];
+	}
+
+	for(int j=0; j<keySize; j++){
+		*transStrings[j] = '\0';
+		
+		if(oddOneOuts>0){
+			if(j<oddOneOuts) transStrings[j] -= (iterations + 1);
+			else transStrings[j] -= (iterations-1);
+		}
+		else{
+			transStrings[j] -= iterations;
+		}
+
+		if(j==0) strcpy(Key,breakTheString(transStrings[j]));
+		else strcat(Key,breakTheString(transStrings[j]));
+	}
+
+	return Key;
 }
 
 char *readFile(char *fileName)
@@ -222,7 +492,7 @@ char *readFile(char *fileName)
 
 int main(int argc, char *argv[]){
 	char *hexString = base642hex(readFile("Test.txt"));
-	//printf("%s\n", hexString);
 	int keySize = findKeySize(hexString, 100, 2);
-	printf("%d", keySize);
+	char *key = findKey(hexString, keySize);
+	printf("%s\n", hex2ASCII(key));
 }

@@ -2,51 +2,40 @@
 #include<stdlib.h>
 #include<string.h>
 
+int hex2int(char ch)
+{
+    if (ch >= '0' && ch <= '9')
+        return ch - '0';
+    if (ch >= 'A' && ch <= 'F')
+        return ch - 'A' + 10;
+    if (ch >= 'a' && ch <= 'f')
+        return ch - 'a' + 10;
+    return -1;
+}
+
 char *fixedXOR(char *hexStringOne, char *hexStringTwo){
 
-	//conversion table
-	char *dec2hex = "0123456789abcdef";
-	
+	char *dec2hex = "0123456789abcdef";	
 	int hexLen = strlen(hexStringOne);
 
-	//handle boundary conditions
 	if(hexLen<1) {
 		printf("Exception: NULL Strings");
 		return 0;
 	}
 
-	char buf[2];
-	long int charOne, charTwo;
-
-	//intialize the result string pointer and dynamically allocate memory to it.
 	char *XORString;
     XORString = (char *)malloc(hexLen+1);
 
-    //iterate through the Strings
-	for(int i=0; i<hexLen; i++){
-		//compute the XOR of the integers and then append the corresponding HEX value into the result
-		buf[0] = hexStringOne[i];
-		buf[1] = '\0';
-		charOne = strtol(buf, NULL, 16);
-
-		buf[0] = hexStringTwo[i];
-		buf[1] = '\0';
-		charTwo = strtol(buf, NULL, 16);
-
-		*XORString = dec2hex[charOne^charTwo];
-		
-		//increment the pointer
+	for(int i=0; i<hexLen; i++){		
+		*XORString = dec2hex[hex2int(hexStringOne[i])^hex2int(hexStringTwo[i])];
 		XORString++;
 	}
 
-	//add a null character to terminate the string
 	*XORString = '\0';
-
-	//reset the pointer ot the start
 	XORString -= (hexLen);
 
 	return XORString;
-}
+}s
 
 int main(int argc, char *argv[]){
 	
