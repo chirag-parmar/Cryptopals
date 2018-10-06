@@ -28,17 +28,20 @@ int hammingDistance(char *stringOne, char *stringTwo){
 	int convTable[16] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4};
 	
 	int len = strlen(stringOne);
-	int decimal, distance = 0;
-	char output[len], temp;
+	long int decimal;
+	int distance = 0;
+	char temp1[2], temp2[2];
 	
 	if(len != strlen(stringTwo)){
 		return 0;
 	}
 
-	for (int i=0; i<len; i++)
-	{
-		temp = stringOne[i] ^ stringTwo[i];
-		decimal = (int)temp;
+	for(int i=0; i<len; i++){
+		temp1[0] = stringOne[i];
+		temp2[0] = stringTwo[i];
+		temp1[1] = '\0';
+		temp2[1] = '\0';
+		decimal = strtol(temp1, NULL, 16) ^ strtol(temp2, NULL, 16);
 		distance += convTable[(decimal%16)];
 		distance += convTable[(decimal/16)];
 	}
@@ -142,12 +145,12 @@ int findKeySize(char *hexString, int maxKeySize, int pickSize){
 	
 	if(maxKeySize > hexLen) return -1;
 
-	float distArray[maxKeySize-1], distance = 0.00, tempDistance = 0.00;
+	double distArray[maxKeySize-1], distance = 0.00, tempDistance = 0.00;
 	char *subString[pickSize];
 
 	for(int i=2; i<=maxKeySize; i++){
 
-		if((pickSize*1) > hexLen) return -1;
+		if((pickSize*i) > hexLen) return -1;
 
 		for(int j=0; j<hexLen/(i*pickSize); j++){
 			for(int k=0; k<pickSize; k++){
@@ -164,19 +167,19 @@ int findKeySize(char *hexString, int maxKeySize, int pickSize){
 
 				if(k>0){
 					//printf("%0.2f  ", (float)hammingDistance(subString[0],subString[k]));
-					distance += (float)hammingDistance(subString[0],subString[k])/(i*8);
+					distance += (double)hammingDistance(hex2ASCII(subString[0]),hex2ASCII(subString[k]))/i;
 				}
 
 				//printf("%s ", subString[k]);
 			}
 			distance /= (pickSize-1);
 			//printf("\n");
-			printf("%0.2f\n", distance);
+			//printf("%0.2f\n", distance);
 			tempDistance += distance;
 			distance = 0.00;
 		}
 		tempDistance /= (hexLen/(i*pickSize));
-		//printf("Key Size %d: %.2f\n", i, tempDistance);
+		printf("Key Size %d: %.5f\n", i, tempDistance);
 		distArray[i-2] = tempDistance;
 		tempDistance = 0.00;
 		hexString -= ((hexLen/(i*pickSize))*(i*pickSize));
@@ -195,6 +198,31 @@ int findKeySize(char *hexString, int maxKeySize, int pickSize){
 	return minimumPos+2;
 }
 
+char *readFile(char *fileName)
+{
+    FILE *file = fopen(fileName, "r");
+    char *code, c;
+    int num = 0;
+
+    if (file == NULL) return NULL;
+
+    code = (char *)malloc(4000);
+
+    while ((c = fgetc(file)) != EOF)
+    {
+        if(c != '\n'){
+        	*code++ = c;
+        	num += 1;
+        }
+    }
+    *code = '\0';        
+    code -= num;
+    return code;
+}
+
 int main(int argc, char *argv[]){
-	int retValue = findKeySize("DUDEDUDEDUDEDUDEDUDEDUDE", 4, 2);
+	char *hexString = base642hex(readFile("Test.txt"));
+	//printf("%s\n", hexString);
+	int keySize = findKeySize(hexString, 100, 2);
+	printf("%d", keySize);
 }
