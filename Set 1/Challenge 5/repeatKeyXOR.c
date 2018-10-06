@@ -2,6 +2,17 @@
 #include <string.h>
 #include <stdlib.h>
 
+int hex2int(char ch)
+{
+    if (ch >= '0' && ch <= '9')
+        return ch - '0';
+    if (ch >= 'A' && ch <= 'F')
+        return ch - 'A' + 10;
+    if (ch >= 'a' && ch <= 'f')
+        return ch - 'a' + 10;
+    return -1;
+}
+
 char *ASCII2hex(char *asciiString){
 
 	char *dec2hex = "0123456789abcdef";
@@ -30,7 +41,7 @@ char *ASCII2hex(char *asciiString){
 
 char *fixedXOR(char *hexStringOne, char *hexStringTwo){
 
-	char *dec2hex = "0123456789abcdef";
+	char *dec2hex = "0123456789abcdef";	
 	int hexLen = strlen(hexStringOne);
 
 	if(hexLen<1) {
@@ -38,22 +49,11 @@ char *fixedXOR(char *hexStringOne, char *hexStringTwo){
 		return 0;
 	}
 
-	char buf[2];
-	long int charOne, charTwo;
-
 	char *XORString;
     XORString = (char *)malloc(hexLen+1);
 
-	for(int i=0; i<hexLen; i++){
-		buf[0] = hexStringOne[i];
-		buf[1] = '\0';
-		charOne = strtol(buf, NULL, 16);
-
-		buf[0] = hexStringTwo[i];
-		buf[1] = '\0';
-		charTwo = strtol(buf, NULL, 16);
-
-		*XORString = dec2hex[charOne^charTwo];
+	for(int i=0; i<hexLen; i++){		
+		*XORString = dec2hex[hex2int(hexStringOne[i])^hex2int(hexStringTwo[i])];
 		XORString++;
 	}
 
@@ -84,4 +84,41 @@ char *repeatKeyXOR(char *key, char *plainText){
 
 int main(int argc, char *argv[]){
 	if(!strcmp(repeatKeyXOR("ICE", "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal"),argv[1])) printf("Hurray!!");
+}
+
+int findKeySize(char *hexString, int maxKeySize){
+
+	char *subStringOne, *subStringTwo;
+	float distArray[maxKeySize-1], min;
+	int minPos, numHex;
+
+	for(int i=2; i<=maxKeySize; i++){
+
+		numHex = i*2;
+
+		subStringOne = malloc(numHex + 1);
+		subStringTwo = malloc(numHex + 1);
+
+		strncpy(subStringOne, hexString, numHex);
+		hexString += numHex;
+		strncpy(subStringTwo, hexString, numHex);
+		hexString -= numHex;
+
+		subStringOne[numHex] = '\0';
+		subStringTwo[numHex] = '\0';
+		
+		distArray[i-2] = hammingDistance(subStringOne, subStringTwo)/(numHex);
+	}
+
+	min = distArray[0];
+	minPos = 0;
+	
+	for(int i=1; i<maxKeySize-1; i++){
+		if(distArray[i] < min){
+			min = distArray[i];
+			minPos = i;
+		}
+	}
+
+	return (minPos+2);
 }

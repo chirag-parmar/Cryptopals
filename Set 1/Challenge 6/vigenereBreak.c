@@ -179,21 +179,9 @@ int findKeySize(char *hexString, int maxKeySize, int pickSize){
 	return minimumPos+2;
 }
 
-int maxFind(unsigned freq[]){
-	int max = 0;
-	int maxpos = -1;
-
-	for(int j=0; j<256; j++){
-		if(freq[j] > max){
-			max = freq[j];
-			maxpos = j;
-		}
-	}
-	return maxpos;
-}
-
 char *int2hex(unsigned int decimal){
 
+	if(decimal>256) return "00";
 	char *dec2hex = "0123456789abcdef";
 
 	char *hexString;
@@ -206,18 +194,27 @@ char *int2hex(unsigned int decimal){
 	return hexString;
 }
 
+int hex2int(char ch)
+{
+    if (ch >= '0' && ch <= '9')
+        return ch - '0';
+    if (ch >= 'A' && ch <= 'F')
+        return ch - 'A' + 10;
+    if (ch >= 'a' && ch <= 'f')
+        return ch - 'a' + 10;
+    return -1;
+}
+
 char *hex2ASCII(char *hexString){
 	int hexLen = strlen(hexString);
-	char buf[3];
+	int decimal;
 	char *ASCIIString;
 	ASCIIString = (char *)malloc(hexLen/2 + 1);
 
 	for (int i=0; i<hexLen; i+=2){
-		buf[0] = hexString[i];
-		buf[1] = hexString[i+1];
-		buf[2] = '\0';
-
-		*ASCIIString = (char)strtol(buf, NULL, 16);
+		decimal = (hex2int(hexString[i])*16 + hex2int(hexString[i+1]));
+		if(decimal<128) *ASCIIString = (char)decimal;
+		else *ASCIIString = '0';
 		ASCIIString++;
 	}
 
@@ -229,7 +226,7 @@ char *hex2ASCII(char *hexString){
 
 char *fixedXOR(char *hexStringOne, char *hexStringTwo){
 
-	char *dec2hex = "0123456789abcdef";
+	char *dec2hex = "0123456789abcdef";	
 	int hexLen = strlen(hexStringOne);
 
 	if(hexLen<1) {
@@ -237,22 +234,11 @@ char *fixedXOR(char *hexStringOne, char *hexStringTwo){
 		return 0;
 	}
 
-	char buf[2];
-	long int charOne, charTwo;
-
 	char *XORString;
     XORString = (char *)malloc(hexLen+1);
 
-	for(int i=0; i<hexLen; i++){
-		buf[0] = hexStringOne[i];
-		buf[1] = '\0';
-		charOne = strtol(buf, NULL, 16);
-
-		buf[0] = hexStringTwo[i];
-		buf[1] = '\0';
-		charTwo = strtol(buf, NULL, 16);
-
-		*XORString = dec2hex[charOne^charTwo];
+	for(int i=0; i<hexLen; i++){		
+		*XORString = dec2hex[hex2int(hexStringOne[i])^hex2int(hexStringTwo[i])];
 		XORString++;
 	}
 
@@ -267,10 +253,10 @@ int scoreText(char *text){
 	int score = 0;
 	for(int i=0; i<strlen(text); i++){
 		if(!isalnum(text[i]) && !isspace(text[i]) && !ispunct(text[i])){
-			score -= 1;
+			score -= 5;
 		}
 		else if(isalpha(text[i])){
-			alphabet = tolower(text[i]);
+			alphabet = text[i];
 			switch(alphabet){
 				case 'e':
 					score += 13;
@@ -320,111 +306,27 @@ int scoreText(char *text){
 	return score;
 }
 
-// char *breakSingleXOR(char *cipherText){
-
-// 	char *masterKey[13] = {"65","74","61","6f","69","6e","20","73","68","72","64","6c","75"};
-
-// 	int hexLen = strlen(cipherText);
-	
-// 	int max;
-// 	int maxScore = 0, score;
-// 	char *hexUnitKey;
-// 	char *finalKey;
-// 	char *plainText;
-// 	char *finalText;
-// 	char Key[hexLen+1];
-// 	char buf[3];
-// 	unsigned frequency[256] = {0};
-
-// 	for(int i=0; i<hexLen; i=i+2){
-// 		buf[0] = cipherText[i];
-// 		buf[1] = cipherText[i+1];
-// 		buf[2] = '\0';
-// 		++frequency[strtol(buf,NULL,16)];
-// 	}
-
-// 	for(int j=0; j<13; j++){
-		
-// 		max = maxFind(frequency);
-// 		frequency[max] = 0;
-		
-// 		hexUnitKey = fixedXOR(int2hex(max),masterKey[j]);
-		
-// 		strcpy(Key,hexUnitKey);
-// 		for(int i=0; i<hexLen; i=i+2){
-// 			Key[i] = hexUnitKey[0];
-// 			Key[i+1] = hexUnitKey[1];
-// 		}
-// 		Key[hexLen] = '\0';
-
-// 		plainText = hex2ASCII(fixedXOR(Key, cipherText));
-// 		score = scoreText(plainText);
-// 		//if(!isalpha((char)hex2ASCII(hexUnitKey))) score = 0;
-// 		printf("%s %s %d\n", hexUnitKey, hex2ASCII(hexUnitKey), score);
-// 		if(score > maxScore){
-// 			maxScore = score;
-// 			finalText = plainText;
-// 			finalKey = hexUnitKey;
-// 		}
-// 	}
-// 	printf("\n");
-
-// 	//return finalText;
-// 	return finalKey;
-// }
-
-char *breakTheString(char *cipherText){
-
-	char *masterKey[13] = {"65","74","61","6f","69","6e","20","73","68","72","64","6c","75"};
-	float letterFrequencies[13] = {0.12702, 0.09056, 0.08167, 0.07507, 0.06966, 0.06749, 0.6500, 0.06327, 0.06094, 0.05987, 0.04253, 0.04025, 0.02758};
+char *breakSingleXOR(char *cipherText){
 
 	int hexLen = strlen(cipherText);
 	
-	int max, findJ;
 	int maxScore = 0, score;
-	float freq, minimum = 1.00;
 	char *hexUnitKey, *finalKey;
+	char *plainText;
+	char *finalText;
 	char Key[hexLen+1];
-	char buf[3], *temp;
-	unsigned frequency[256] = {0};
 
-	for(int i=0; i<hexLen; i=i+2){
-		buf[0] = cipherText[i];
-		buf[1] = cipherText[i+1];
-		buf[2] = '\0';
-		frequency[strtol(buf,NULL,16)] += 1;
-	}
+	for(int i=0; i<256; i++){
+		hexUnitKey = int2hex(i);
 
-	for(int j=0; j<13; j++){
-		
-		max = maxFind(frequency);
-
-		freq = (float)(frequency[max]*2)/hexLen;
-
-		frequency[max] = 0;
-		findJ = 0;
-		minimum = 1;
-
-		for(int k=0; k<13; k++){
-			if (fabs(freq - letterFrequencies[k]) < minimum){
-				minimum = fabs(freq - letterFrequencies[k]);
-				findJ = k;
-			}
-		}
-
-		
-		hexUnitKey = fixedXOR(int2hex(max),masterKey[findJ]);
-		
 		strcpy(Key,hexUnitKey);
-		for(int i=0; i<hexLen; i=i+2){
-			Key[i] = hexUnitKey[0];
-			Key[i+1] = hexUnitKey[1];
+		for(int i=0; i<hexLen/2; i++){
+			strcat(Key, hexUnitKey);
 		}
 		Key[hexLen] = '\0';
 
-		score = scoreText(hex2ASCII(fixedXOR(Key, cipherText)));
-		temp = hex2ASCII(hexUnitKey);
-		//if(!isalpha(*temp) && !isspace(*temp)) score = 0;
+		plainText = hex2ASCII(fixedXOR(Key, cipherText));
+		score = scoreText(plainText);
 		if(score > maxScore){
 			maxScore = score;
 			finalKey = hexUnitKey;
@@ -461,11 +363,49 @@ char *findKey(char *hexString, char keySize){
 			transStrings[j] -= iterations;
 		}
 
-		if(j==0) strcpy(Key,breakTheString(transStrings[j]));
-		else strcat(Key,breakTheString(transStrings[j]));
+		if(j==0) strcpy(Key,breakSingleXOR(transStrings[j]));
+		else strcat(Key,breakSingleXOR(transStrings[j]));
 	}
 
 	return Key;
+}
+
+char *ASCII2hex(char *asciiString){
+
+	char *dec2hex = "0123456789abcdef";
+	int asciiLen = strlen(asciiString), decimal;
+
+	char *hexString;
+	hexString = (char *)malloc(2*asciiLen + 1);
+
+	for(int i=0; i<asciiLen; i++){
+		decimal = (int)asciiString[i];
+		*hexString++ = dec2hex[(decimal/16)];
+		*hexString++ = dec2hex[(decimal%16)];
+	}
+	*hexString = '\0';
+	hexString -= (asciiLen*2);
+
+	return hexString;
+}
+
+char *repeatKeyXOR(char *key, char *plainText){
+
+	int keyLen = strlen(key);
+	int textLen = strlen(plainText);
+
+	char *encKey = (char *)malloc(textLen+1);
+	
+	strcpy(encKey, key);
+	for(int i=1; i<textLen/keyLen; i++){
+		strcat(encKey, key);
+	}
+	encKey[textLen] = '\0';
+	for(int i=0; i<textLen%keyLen; i++){
+		encKey[(textLen/keyLen)*keyLen + i] = key[i];
+	}
+
+	return fixedXOR(plainText, encKey);
 }
 
 char *readFile(char *fileName)
@@ -492,7 +432,8 @@ char *readFile(char *fileName)
 
 int main(int argc, char *argv[]){
 	char *hexString = base642hex(readFile("Test.txt"));
-	int keySize = findKeySize(hexString, 100, 2);
+	int keySize = findKeySize(hexString, 100, 5);
 	char *key = findKey(hexString, keySize);
-	printf("%s\n", hex2ASCII(key));
+	char *plainText = repeatKeyXOR(key, hexString);
+	printf("PLAIN TEXT: %s", hex2ASCII(plainText));
 }

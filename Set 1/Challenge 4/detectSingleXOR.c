@@ -130,7 +130,7 @@ int scoreText(char *text){
 	return score;
 }
 
-char *breakTheString(char *cipherText){
+char *breakSingleXOR(char *cipherText){
 
 	int hexLen = strlen(cipherText);
 	

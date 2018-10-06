@@ -130,7 +130,7 @@ int scoreText(char *text){
 	return score;
 }
 
-char *breakTheString(char *cipherText){
+char *breakSingleXOR(char *cipherText){
 
 	int hexLen = strlen(cipherText);
 	
@@ -161,5 +161,5 @@ char *breakTheString(char *cipherText){
 }
 
 int main(int argc, char *argv[]){
-	printf("Cracked: %s\n",breakTheString(argv[1]));
+	printf("Cracked: %s\n",breakSingleXOR(argv[1]));
 }

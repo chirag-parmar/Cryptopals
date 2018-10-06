@@ -35,7 +35,7 @@ char *fixedXOR(char *hexStringOne, char *hexStringTwo){
 	XORString -= (hexLen);
 
 	return XORString;
-}s
+}
 
 int main(int argc, char *argv[]){
 	
