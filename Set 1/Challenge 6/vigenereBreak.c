@@ -433,7 +433,8 @@ char *readFile(char *fileName)
 int main(int argc, char *argv[]){
 	char *hexString = base642hex(readFile("Test.txt"));
 	int keySize = findKeySize(hexString, 100, 5);
-	char *key = findKey(hexString, keySize);
+	char *key = findKey(hexString, 29);
+	printf("KEY: %s", key);
 	char *plainText = repeatKeyXOR(key, hexString);
 	printf("PLAIN TEXT: %s", hex2ASCII(plainText));
 }
