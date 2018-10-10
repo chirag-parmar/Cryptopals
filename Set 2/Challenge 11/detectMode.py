@@ -1,5 +1,6 @@
+from AESCBC import fixedXOR
+from encryptionOracle import encryptionOracle
 import itertools
-from crackSingleXOR import fixedXOR
 
 def hammingDistance(hexString1, hexString2):
 	XORed = fixedXOR(hexString1,hexString2)
@@ -33,13 +34,21 @@ def scoreCipher(hexString, keySize=32):
 
 	return lowestDistance
 
-if __name__ == "__main__":
-	scoresByLines = {}
-	lineNum = 1
-	with open('Test.txt', 'r') as testFile:
-		for line in testFile:
-			scoresByLines[str(lineNum)] = scoreCipher(line.strip())
-			lineNum+=1
+message = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
-	AESECBLines = sorted(scoresByLines, key=scoresByLines.__getitem__)[:3]
-	print "Line no. " + AESECBLines[0] + " is encrypted in ECB mode"
+if __name__ == "__main__":
+	tests = []
+	for i in range(0,1000):
+		cipherText, mode = encryptionOracle(message)
+		score = scoreCipher(cipherText)
+		if score == 0:
+			detectedMode = 'ECB'
+		else:
+			detectedMode = 'CBC'
+
+		if mode == detectedMode:
+			tests.append(1)
+		else:
+			tests.append(0)
+
+	print str(sum(tests)) + "/" + str(len(tests)) + " Passed, Accuracy " + str(sum(tests)/len(tests)*100) + "%"
