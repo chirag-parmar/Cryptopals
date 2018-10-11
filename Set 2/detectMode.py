@@ -1,4 +1,4 @@
-from AESCBC import fixedXOR
+from fixedXOR import fixedXOR
 from encryptionOracle import encryptionOracle
 import itertools
 

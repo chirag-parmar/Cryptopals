@@ -1,6 +1,6 @@
 import os
 import random
-from AESCBC import AESCBCencrypt, AESECBencrypt
+from AES import AESCBCencrypt, AESECBencrypt
 
 def encryptionOracle(text, keySize=128): 
 	
