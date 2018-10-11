@@ -83,42 +83,5 @@ char *repeatKeyXOR(char *key, char *plainText){
 }
 
 int main(int argc, char *argv[]){
-	if(!strcmp(repeatKeyXOR("ICE", "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal"),argv[1])) printf("Hurray!!");
-}
-
-int findKeySize(char *hexString, int maxKeySize){
-
-	char *subStringOne, *subStringTwo;
-	float distArray[maxKeySize-1], min;
-	int minPos, numHex;
-
-	for(int i=2; i<=maxKeySize; i++){
-
-		numHex = i*2;
-
-		subStringOne = malloc(numHex + 1);
-		subStringTwo = malloc(numHex + 1);
-
-		strncpy(subStringOne, hexString, numHex);
-		hexString += numHex;
-		strncpy(subStringTwo, hexString, numHex);
-		hexString -= numHex;
-
-		subStringOne[numHex] = '\0';
-		subStringTwo[numHex] = '\0';
-		
-		distArray[i-2] = hammingDistance(subStringOne, subStringTwo)/(numHex);
-	}
-
-	min = distArray[0];
-	minPos = 0;
-	
-	for(int i=1; i<maxKeySize-1; i++){
-		if(distArray[i] < min){
-			min = distArray[i];
-			minPos = i;
-		}
-	}
-
-	return (minPos+2);
+	printf("%s\n", repeatKeyXOR("ICE", "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal"));
 }

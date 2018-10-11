@@ -116,7 +116,7 @@ char *base642hex(char *base64String){
 	}
 	hexString -= (equalPaddings*2);
 	*hexString = '\0';
-	hexString -= ((base64Len*3/2) - equalPaddings - 1;
+	hexString -= (base64Len*3/2) - equalPaddings - 1;
 	return hexString;
 }
 
@@ -422,9 +422,9 @@ char *readFile(char *fileName)
     while ((c = fgetc(file)) != -1)
     {
         if(c == (-1)) break;
-	else if(c != '\n'){
+		else if(c != '\n'){
         	printf("%c",c);
-		*code++ = (char)c;
+        	*code++ = (char)c;
         	num += 1;
         }
     }
