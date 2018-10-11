@@ -12,7 +12,7 @@ def readFile(filename):
 	return hexString
 
 if __name__ == "__main__":
-	hexString = readFile("Test.txt")
+	hexString = readFile("./Tests/7.txt")
 	key = "YELLOW SUBMARINE"
 	plainText = ''
 	backend = default_backend()

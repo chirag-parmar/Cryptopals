@@ -18,7 +18,7 @@ def fixedXOR(hexString1, hexString2, chunkSize = 128):
 	else:
 		if chunkSize > hexLen1:
 			chunkSize = hexLen1
-		while (hexLen1 - (i*chunkSize)) > chunkSize:
+		while (hexLen1 - (i*chunkSize)) >= chunkSize:
 			interInt1 = int(hexString1[i*chunkSize:i*chunkSize + chunkSize], 16)
 			interInt2 = int(hexString2[i*chunkSize:i*chunkSize + chunkSize], 16)
 			XORString += hex(interInt1^interInt2)[2:].zfill(chunkSize+1).rstrip("L")
@@ -29,7 +29,7 @@ def fixedXOR(hexString1, hexString2, chunkSize = 128):
 			XORString += hex(interInt1^interInt2)[2:].zfill((hexLen1%chunkSize)+1).rstrip("L")
 	return XORString
 
-argv = sys.argv[1:]
-
-for i in range(0, len(argv), 2):
-	print fixedXOR(argv[i],argv[i+1],15).decode("hex")
+if __name__ == "__main__":
+	argv = sys.argv[1:]
+	for i in range(0, len(argv), 2):
+		print fixedXOR(argv[i],argv[i+1],15).decode("hex")

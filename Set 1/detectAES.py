@@ -1,5 +1,5 @@
 import itertools
-from crackSingleXOR import fixedXOR
+from fixedXOR import fixedXOR
 
 def hammingDistance(hexString1, hexString2):
 	XORed = fixedXOR(hexString1,hexString2)
@@ -36,7 +36,7 @@ def scoreCipher(hexString, keySize=32):
 if __name__ == "__main__":
 	scoresByLines = {}
 	lineNum = 1
-	with open('Test.txt', 'r') as testFile:
+	with open('./Tests/8.txt', 'r') as testFile:
 		for line in testFile:
 			scoresByLines[str(lineNum)] = scoreCipher(line.strip())
 			lineNum+=1

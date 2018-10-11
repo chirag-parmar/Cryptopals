@@ -1,4 +1,5 @@
-from crackSingleXOR import crackSingleXOR, fixedXOR
+from crackSingleXOR import crackSingleXOR
+from fixedXOR import fixedXOR
 import sys
 
 def repeatKeyXOR(key, text):
@@ -17,4 +18,6 @@ def repeatKeyXOR(key, text):
 	return fixedXOR(repeatKey, text)
 
 if __name__ == "__main__":
-	print repeatKeyXOR(sys.argv[1], "Burning 'em, if you ain't quick and nimble I go crazy when I hear a cymbal")
+	message = "Burning 'em, if you ain't quick and nimble I go crazy when I hear a cymbal"
+	key = sys.argv[1]
+	print repeatKeyXOR(key.encode("hex"), message.encode("hex"))

@@ -1,4 +1,5 @@
-from crackSingleXOR import crackSingleXOR, fixedXOR, scoreText
+from crackSingleXOR import crackSingleXOR, scoreText
+from fixedXOR import fixedXOR
 from repeatKeyXOR import repeatKeyXOR
 
 def hammingDistance(hexString1, hexString2):
@@ -61,7 +62,7 @@ def readFile(filename):
 	return hexString
 
 if __name__ == "__main__":
-	hexString = readFile("Test.txt")
+	hexString = readFile("./Tests/6.txt")
 	keyLengths = findKeyLength(hexString, 100, 2)
 	key = ''
 	interText = ''
@@ -69,11 +70,14 @@ if __name__ == "__main__":
 	score = 0.00
 	maxScore = 0.00
 
+	print keyLengths
+
 	for keyLen in keyLengths:
 		key = ''
 		repeatStrings = moldMatrix(hexString, int(keyLen))
 		for eachString in repeatStrings:
 			key += crackSingleXOR(eachString)
+		print key.decode("hex")
 		interText = repeatKeyXOR(key, hexString).decode("hex")
 		score = scoreText(interText)
 		if(score > maxScore):

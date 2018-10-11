@@ -1,11 +1,12 @@
-from crackSingleXOR import crackSingleXOR, fixedXOR
+from crackSingleXOR import crackSingleXOR
+from fixedXOR import fixedXOR
 
 if __name__ == "__main__":
 	score = 0.00
 	maxScore = 0.00
 	detectedLine = ''
 
-	with open('Test.txt', 'r') as testFile:
+	with open('./Tests/4.txt', 'r') as testFile:
 		for line in testFile:
 			score = crackSingleXOR(line.strip(),False,True)
 			if(score > maxScore):
