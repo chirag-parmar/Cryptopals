@@ -6,8 +6,8 @@ char *hex2base64(char *hexString){
 	char *hex2bin[16] = { "0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111" };
 	char *dec2base64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-	int zeroPaddings = 0;
-	int hexLen = strlen(hexString);
+	unsigned int zeroPaddings = 0;
+	unsigned int hexLen = strlen(hexString);
 	zeroPaddings = (hexLen%3);
 	
 	char buf[2];
@@ -15,7 +15,7 @@ char *hex2base64(char *hexString){
 	char first[7];
 	char second[7];
 	char *converted;
-    converted = (char*)malloc(((hexLen*4)/6) + zeroPaddings + 1);
+	converted = (char*)malloc(((hexLen*4)/6) + zeroPaddings + 1);
 	int j = 0;
 
 	for(int i=0; i<(hexLen - zeroPaddings); i=i+3){
@@ -73,5 +73,11 @@ char *hex2base64(char *hexString){
 }
 
 int main(int argc, char *argv[]){
-	printf("%s", hex2base64(argv[1]));
+	int argLen = strlen(argv[1]);
+	if(argLen > 0){
+		printf("%s\n", hex2base64(argv[1]));
+	}
+	else{
+		printf("No Arguments Passed");
+	}
 }
