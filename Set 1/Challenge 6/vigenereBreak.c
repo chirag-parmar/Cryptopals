@@ -116,7 +116,7 @@ char *base642hex(char *base64String){
 	}
 	hexString -= (equalPaddings*2);
 	*hexString = '\0';
-	hexString -= (base64Len*3/2 - (equalPaddings*2));
+	hexString -= ((base64Len*3/2) - equalPaddings - 1;
 	return hexString;
 }
 
@@ -411,21 +411,24 @@ char *repeatKeyXOR(char *key, char *plainText){
 char *readFile(char *fileName)
 {
     FILE *file = fopen(fileName, "r");
-    char *code, c;
+    char *code;
+    int c;
     int num = 0;
 
     if (file == NULL) return NULL;
 
-    code = (char *)malloc(4000);
+    code = (char *)malloc(5000);
 
-    while ((c = fgetc(file)) != EOF)
+    while ((c = fgetc(file)) != -1)
     {
-        if(c != '\n'){
-        	*code++ = c;
+        if(c == (-1)) break;
+	else if(c != '\n'){
+        	printf("%c",c);
+		*code++ = (char)c;
         	num += 1;
         }
     }
-    *code = '\0';        
+    *code = '\0';
     code -= num;
     return code;
 }
