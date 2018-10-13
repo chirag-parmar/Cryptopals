@@ -14,9 +14,10 @@ def hammingDistance(hexString1, hexString2):
 
 	return count
 
-def scoreCipher(hexString, blockSize=32):
+def scoreCipher(hexString, blockSize=16):
 	hexLen = len(hexString)
 	byteStrings = []
+	blockSize *= 2
 	distance = 0.00
 	lowestDistance = 2.00
 
@@ -28,11 +29,26 @@ def scoreCipher(hexString, blockSize=32):
 	combLen = len(combinations)
 
 	for pair in combinations:
-		distance = (hammingDistance(pair[0], pair[1])/128)
+		distance = (hammingDistance(pair[0], pair[1])/blockSize*4)
 		if(distance < lowestDistance):
 			lowestDistance = distance
 
 	return lowestDistance
+
+def isAdjacentBlockEqual(cipherText, blockSize):
+	blockSize *= 2
+	prevBlock = cipherText[:blockSize]
+	cipherLen = len(cipherText)
+	counter = 0
+
+	for i in range(blockSize, cipherLen, blockSize):
+		if cipherText[i:i+blockSize] != prevBlock:
+			prevBlock = cipherText[i:i+blockSize]
+			counter += 1
+		else:
+			return counter
+	return False
+
 
 def detectMode(blockSize):
 	message = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
@@ -47,25 +63,51 @@ def detectMode(blockSize):
 
 def findBlockSize():
 	message = ""
-	for i in range (1,65):
+	prevLen = len(encryptionOracle(message))
+	blockSize = 0
+
+	while (blockSize == 0):
 		message += "C"
-		cipherText = encryptionOracle(message)
-		if cipherText[:i] == cipherText[i:2*i]:
-			return i/2
-	return 0
+		blockSize = (len(encryptionOracle(message)) - prevLen)/2
+
+	return blockSize
+
+def findLeadingBytes(blockSize):
+	message = ""
+	leadingBytes = 0
+	timeout = 1000
+	count = 0
+
+	while not count and timeout>0:
+		message += "A"
+		count = isAdjacentBlockEqual(encryptionOracle(message), blockSize)
+		leadingBytes += 1
+		timeout -= 1
+
+	if not timeout>0:
+		leadingBytes = 0
+	elif (leadingBytes%blockSize):
+		leadingBytes = (count-1)*blockSize + (blockSize - leadingBytes%blockSize)
+		count -= 1
+	else:
+		leadingBytes = count*blockSize
+
+	return leadingBytes
 
 
-def crackItOpen(blockSize):
+def crackItOpen(blockSize, leadingBytes):
 	secretLen = len(encryptionOracle(""))/2
 	foundString = ""
-
-	for k in range(1, (secretLen/blockSize)+1):
+	leadingNum = leadingBytes/blockSize if (leadingBytes%blockSize) == 0 else leadingBytes/blockSize + 1
+	print leadingNum
+	for k in range(1, secretLen/blockSize +1):
+		scope = k if leadingBytes == 0 else k+leadingNum
 		for j in range(1, blockSize+1):
-			exploitMsg = "A"*(blockSize-j)
+			exploitMsg = "A"*(blockSize-j) + "A"*(blockSize - leadingBytes%blockSize)
 			for i in range(0, 256):
-				if encryptionOracle(exploitMsg)[:blockSize*2*k] == encryptionOracle(exploitMsg + foundString + chr(i))[:blockSize*2*k]:
+				if encryptionOracle(exploitMsg)[:blockSize*2*scope] == encryptionOracle(exploitMsg + foundString + chr(i))[:blockSize*2*scope]:
 					foundString += chr(i)
-					break;
+					break
 
 	foundString = foundString.encode("hex")
 	paddingNum = int(foundString[-2:],16)
@@ -78,7 +120,8 @@ def crackItOpen(blockSize):
 	
 if __name__ == "__main__":
 	blockSize = findBlockSize()
+	leadingBytes = findLeadingBytes(blockSize)
 	if blockSize > 0 and detectMode(blockSize) == 'ECB':
-		print crackItOpen(blockSize)
+		print crackItOpen(blockSize, leadingBytes)
 	else:
-		print "Not ECB mode"
+		print "Not ECB mode or block size " + str(blockSize) + " unacceptable"
