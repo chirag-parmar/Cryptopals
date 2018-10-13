@@ -34,21 +34,18 @@ def scoreCipher(hexString, keySize=32):
 
 	return lowestDistance
 
-message = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+def detectMode():
+	message = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+	cipherText = encryptionOracle(message)
+	score = scoreCipher(cipherText)
+	if score == 0:
+		detectedMode = 'ECB'
+	else:
+		detectedMode = 'CBC'
+
+	return detectedMode
+
 
 if __name__ == "__main__":
-	tests = []
 	for i in range(0,1000):
-		cipherText, mode = encryptionOracle(message)
-		score = scoreCipher(cipherText)
-		if score == 0:
-			detectedMode = 'ECB'
-		else:
-			detectedMode = 'CBC'
-
-		if mode == detectedMode:
-			tests.append(1)
-		else:
-			tests.append(0)
-
-	print str(sum(tests)) + "/" + str(len(tests)) + " Passed, Accuracy " + str(sum(tests)/len(tests)*100) + "%"
+		print detectMode()

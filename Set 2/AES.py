@@ -28,64 +28,64 @@ def AESencrypt(key, hexString):
 
 def AESECBencrypt(key, hexString):
 	hexLen = len(hexString)
-	keySize = len(key)*2
+	blockSize = 32
 	cipherText = ''
 
-	if (hexLen%keySize) != 0:
-		hexString = padMsg(hexString, hexLen + (keySize-(hexLen%keySize)), True)
+	if (hexLen%blockSize) != 0:
+		hexString = padMsg(hexString, hexLen + (blockSize-(hexLen%blockSize)), True, blockSize)
 
 	hexLen = len(hexString)
-	for i in range(0, hexLen, keySize):
-		cipherText += AESencrypt(key, hexString[i:i+keySize])
+	for i in range(0, hexLen, blockSize):
+		cipherText += AESencrypt(key, hexString[i:i+blockSize])
 
 	return cipherText
 
 def AESECBdecrypt(key, hexString):
 	hexLen = len(hexString)
-	keySize = len(key)*2
+	blockSize = 32
 	plainText = ''
 
-	if hexLen%keySize != 0:
+	if hexLen%blockSize != 0:
 		raise Exception("16(n) byte cipher text required - " + str(hexLen))
 	else:
-		for i in range(0, hexLen, keySize):
-			plainText += AESdecrypt(key, hexString[i:i+keySize])
+		for i in range(0, hexLen, blockSize):
+			plainText += AESdecrypt(key, hexString[i:i+blockSize])
 
 	return plainText
 
 def AESCBCencrypt(key, hexString, IV):
 	hexLen = len(hexString)
-	keySize = len(key)*2
+	blockSize = 32
 	previousMsg = IV
 	cipherText = ''
 
-	if (hexLen%keySize) != 0:
-		hexString = padMsg(hexString, hexLen + (keySize-(hexLen%keySize)), True)
+	if (hexLen%blockSize) != 0:
+		hexString = padMsg(hexString, hexLen + (blockSize-(hexLen%blockSize)), True)
 
 	hexLen = len(hexString)
 
-	for i in range(0, hexLen, keySize):
-		previousMsg = AESencrypt(key, fixedXOR(hexString[i:i+keySize], previousMsg))
+	for i in range(0, hexLen, blockSize):
+		previousMsg = AESencrypt(key, fixedXOR(hexString[i:i+blockSize], previousMsg))
 		cipherText += previousMsg
 
 	return cipherText
 
 def AESCBCdecrypt(key, hexString, IV):
 	hexLen = len(hexString)
-	keySize = len(key)*2
+	blockSize = 32
 	previousMsg = IV
 	plainText = ''
 
 	hexLen = len(hexString)
-	if hexLen%keySize != 0:
+	if hexLen%blockSize != 0:
 		raise Exception("16(n) byte cipher text required- " + str(hexLen))
 	else:
-		for i in range(0, hexLen, keySize):
-			plainText += fixedXOR(AESdecrypt(key, hexString[i:i+keySize]), previousMsg)
-			previousMsg = hexString[i:i+keySize]
+		for i in range(0, hexLen, blockSize):
+			plainText += fixedXOR(AESdecrypt(key, hexString[i:i+blockSize]), previousMsg)
+			previousMsg = hexString[i:i+blockSize]
 
 	paddingNum = int(plainText[len(plainText)-2:])
-	if paddingNum < (keySize/2):
+	if paddingNum < (blockSize/2):
 		plainText = plainText[:len(plainText)-(paddingNum*2)]
 
 	return plainText

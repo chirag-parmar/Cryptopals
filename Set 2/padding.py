@@ -1,6 +1,6 @@
 import binascii
 
-def padMsg(msg, toBytes, inHex = False):
+def padMsg(msg, toBytes, inHex = False, keySize=16):
 	msgLen = len(msg)
 
 	if inHex:
