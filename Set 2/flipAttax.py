@@ -22,11 +22,12 @@ def makeAdmin():
 
 	cipherText = encryptionOracle(inputText*2)
 	cipherLen = len(cipherText)
-	maskText = blockSize*2*"0" + attaxText + (cipherLen-blockSize*4)*("0")
 
-	forgedText = fixedXOR(maskText, cipherText)
-
-	if checkAdminOracle(forgedText):
-		print "BROKY BROKY"
+	for i in range(cipherLen/(blockSize*2)-2):
+		maskText = blockSize*i*2*"0" + attaxText + (cipherLen-(blockSize*2)-(blockSize*i*2))*"0"
+		forgedText = fixedXOR(maskText, cipherText)
+		if checkAdminOracle(forgedText):
+			print "Hacked Through AES CBC mode"
+			break
 
 makeAdmin()

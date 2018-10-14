@@ -6,7 +6,6 @@ iv = os.urandom(16)
 iv = iv.encode("hex")
 
 def encryptionOracle(plainText):
-	global key
 	prepend = r"comment1=cooking%20MCs;userdata="
 	append = r";comment2=%20like%20a%20pound%20of%20bacon"
 
@@ -19,17 +18,18 @@ def encryptionOracle(plainText):
 
 def checkAdminOracle(cipherText):
 	
-	global key
 	plainText = AESCBCdecrypt(key, cipherText, iv)
 	plainText = plainText.decode("hex")
 	meta = plainText.split(";")
+	metakey = ""
+	value = ""
 
 	for item in meta:
 		try:
-			key, value = item.split("=")
+			metakey, value = item.split("=")
 		except:
 			pass
-		if key == "admin" and value == "true":
+		if metakey == "admin" and value == "true":
 			return True
 
 	return False
