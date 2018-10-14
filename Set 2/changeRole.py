@@ -1,5 +1,5 @@
+from cookieProfiles import encryptionOracle, decryptionOracle
 from fixedXOR import fixedXOR
-from encryptionOracle2 import encryptionOracle
 import itertools
 
 def hammingDistance(hexString1, hexString2):
@@ -72,6 +72,19 @@ def findBlockSize():
 
 	return blockSize
 
+def findpaddableSpace():
+	message = ""
+	prevLen = len(encryptionOracle(message))
+	blockSize = 0
+	paddableSpace = -1
+
+	while (blockSize == 0):
+		message += "C"
+		blockSize = (len(encryptionOracle(message)) - prevLen)/2
+		paddableSpace += 1
+
+	return paddableSpace
+
 def findLeadingBytes(blockSize):
 	message = ""
 	leadingBytes = 0
@@ -94,34 +107,22 @@ def findLeadingBytes(blockSize):
 
 	return leadingBytes
 
-
-def crackItOpen(blockSize):
-	secretLen = len(encryptionOracle(""))/2
-	foundString = ""
-	leadingBytes = findLeadingBytes(blockSize)
-	leadingNum = leadingBytes/blockSize if (leadingBytes%blockSize) == 0 else leadingBytes/blockSize + 1
-
-	for k in range(1, secretLen/blockSize +1):
-		scope = k if leadingBytes == 0 else k+leadingNum
-		for j in range(1, blockSize+1):
-			exploitMsg = "A"*(blockSize-j) + "A"*((blockSize - leadingBytes%blockSize)%blockSize)
-			for i in range(0, 256):
-				if encryptionOracle(exploitMsg)[:blockSize*2*scope] == encryptionOracle(exploitMsg + foundString + chr(i))[:blockSize*2*scope]:
-					foundString += chr(i)
-					break
-
-	foundString = foundString.encode("hex")
-	paddingNum = int(foundString[-2:],16)
-	if paddingNum < 16:
-		foundString = foundString[:(-1)*paddingNum*2]
-		print "No. of padding bytes: " + str(paddingNum) + '\n'
-
-	return foundString.decode("hex")
-
 	
 if __name__ == "__main__":
 	blockSize = findBlockSize()
 	if blockSize > 0 and detectMode(blockSize) == 'ECB':
-		print crackItOpen(blockSize)
+		leadingBytes = findLeadingBytes(blockSize)
+
+		message = "A"*((blockSize - leadingBytes%blockSize)%blockSize) + "admin\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b"
+		forgeBlock =  encryptionOracle(message)[blockSize*2:blockSize*4]
+		
+		emailLen = findpaddableSpace() + 4
+		email = raw_input("Enter email address of length " + str(emailLen) + " :")
+		
+		validCipher = encryptionOracle(email)
+		forgedCipher = validCipher[:(-1)*2*blockSize] + forgeBlock
+
+		decryptionOracle(forgedCipher)
+
 	else:
 		print "Not ECB mode or block size " + str(blockSize) + " unacceptable"

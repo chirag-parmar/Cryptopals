@@ -51,10 +51,6 @@ def AESECBdecrypt(key, hexString):
 		for i in range(0, hexLen, blockSize):
 			plainText += AESdecrypt(key, hexString[i:i+blockSize])
 
-	paddingNum = int(plainText[len(plainText)-2:])
-	if paddingNum < (blockSize/2):
-		plainText = plainText[:len(plainText)-(paddingNum*2)]
-
 	return plainText
 
 def AESCBCencrypt(key, hexString, IV):
@@ -87,10 +83,6 @@ def AESCBCdecrypt(key, hexString, IV):
 		for i in range(0, hexLen, blockSize):
 			plainText += fixedXOR(AESdecrypt(key, hexString[i:i+blockSize]), previousMsg)
 			previousMsg = hexString[i:i+blockSize]
-
-	paddingNum = int(plainText[len(plainText)-2:])
-	if paddingNum < (blockSize/2):
-		plainText = plainText[:len(plainText)-(paddingNum*2)]
 
 	return plainText
 
