@@ -26,6 +26,15 @@ def AESencrypt(key, hexString):
 	cipherText =  encryptor.update(hexString.decode("hex")) + encryptor.finalize()
 	return cipherText.encode("hex")
 
+def isValidPadding(plainText, blockSize=16):
+	padCount = int(plainText[-1:].encode("hex"),16) if int(plainText[-1:].encode("hex"),16) < blockSize else 0
+	interText = plainText[-padCount:]
+	for i in range(padCount):
+		if int(interText[i].encode("hex"),16) != padCount:
+			raise Exception("Invalid Padding")
+
+	return plainText[:(-1)*padCount]
+
 def AESECBencrypt(key, hexString):
 	hexLen = len(hexString)
 	blockSize = 32
@@ -51,7 +60,9 @@ def AESECBdecrypt(key, hexString):
 		for i in range(0, hexLen, blockSize):
 			plainText += AESdecrypt(key, hexString[i:i+blockSize])
 
-	return plainText
+	plainText = isValidPadding(plainText.decode("hex"))
+
+	return plainText.encode("hex")
 
 def AESCBCencrypt(key, hexString, IV):
 	hexLen = len(hexString)
@@ -84,7 +95,9 @@ def AESCBCdecrypt(key, hexString, IV):
 			plainText += fixedXOR(AESdecrypt(key, hexString[i:i+blockSize]), previousMsg)
 			previousMsg = hexString[i:i+blockSize]
 
-	return plainText
+	plainText = isValidPadding(plainText.decode("hex"))
+	
+	return plainText.encode("hex")
 
 if __name__ == "__main__":
 	key = "YELLOW SUBMARINE"
