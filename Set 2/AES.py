@@ -27,7 +27,10 @@ def AESencrypt(key, hexString):
 	return cipherText.encode("hex")
 
 def isValidPadding(plainText, blockSize=16):
-	padCount = int(plainText[-1:].encode("hex"),16) if int(plainText[-1:].encode("hex"),16) < blockSize else 0
+	if int(plainText[-1:].encode("hex"),16) < blockSize:
+		padCount = int(plainText[-1:].encode("hex"),16)
+	else:
+		raise Exception("Invalid Padding")
 	interText = plainText[-padCount:]
 	for i in range(padCount):
 		if int(interText[i].encode("hex"),16) != padCount:
