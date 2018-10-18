@@ -9,7 +9,7 @@ def encryptionOracle(blockSize=16):
 	
 	with open('./Tests/17.txt', 'r') as testFile:
 		for line in testFile:
-			lines.append(line);
+			lines.append(line.strip());
 
 	message = lines[random.randint(0,len(lines)-1)].decode("base64")
 

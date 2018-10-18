@@ -3,6 +3,7 @@ from cryptography.hazmat.backends import default_backend
 from fixedXOR import fixedXOR
 from padding import padMsg
 import binascii
+import math
 import sys
 import os
 
@@ -101,6 +102,49 @@ def AESCBCdecrypt(key, hexString, IV):
 	plainText = isValidPadding(plainText.decode("hex"))
 	
 	return plainText.encode("hex")
+
+def big2little(a):
+	littleString = "".join(reversed([a[i:i+2] for i in range(0, len(a), 2)]))
+	return littleString
+
+def AESCTRencrypt(key, hexString, nonce, blockSize=16):
+	hexLen = len(hexString)
+	blockSize *= 2
+	ctr = 0
+	keyStream = ''
+
+	for i in range(0, int(math.ceil(hexLen/(blockSize*1.0)))):
+		hex_ctr = big2little(hex(ctr)[2:].zfill(16).rstrip("L"))
+		hex_nonce = big2little(hex(nonce)[2:].zfill(16).rstrip("L"))
+		ctr += 1
+		keyStream += AESencrypt(key, hex_nonce + hex_ctr)
+
+	keyLen = len(keyStream)
+	diffBytes = keyLen%hexLen
+	if diffBytes > 0:
+		keyStream = keyStream[:(-1)*diffBytes]
+
+	return fixedXOR(keyStream, hexString)
+
+def AESCTRdecrypt(key, hexString, nonce, blockSize=16):
+	hexLen = len(hexString)
+	blockSize *= 2
+	ctr = 0
+	keyStream = ''
+
+	for i in range(0, int(math.ceil(hexLen/(blockSize*1.0)))):
+		hex_ctr = big2little(hex(ctr)[2:].zfill(16).rstrip("L"))
+		hex_nonce = big2little(hex(nonce)[2:].zfill(16).rstrip("L"))
+		ctr += 1
+		keyStream += AESencrypt(key, hex_nonce + hex_ctr)
+
+	keyLen = len(keyStream)
+	diffBytes = keyLen%hexLen
+	if diffBytes > 0:
+		keyStream = keyStream[:(-1)*diffBytes]
+
+	return fixedXOR(keyStream, hexString)
+
 
 if __name__ == "__main__":
 	key = "YELLOW SUBMARINE"
