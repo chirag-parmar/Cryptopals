@@ -13,7 +13,7 @@ def moldMatrix(hexStrings, keyLen):
 	return repeatBins
 
 if __name__ == "__main__":
-	encryptedStrings = readFileandEncrypt("./Tests/19.txt")
+	encryptedStrings = readFileandEncrypt("./Tests/20.txt")
 	maxLen = 0.0
 	key = ''
 
@@ -30,15 +30,13 @@ if __name__ == "__main__":
 
 	keyLen = 0
 	diffBytes = 0
-	i = 0 
 	tempKeyStream = ''
 	for encryption in encryptedStrings:
 		keyLen = len(key)
-		diffBytes = keyLen%len(encryption)
+		eLen = len(encryption)
+		diffBytes = (keyLen - eLen)
 		if diffBytes > 0:
 			tempKeyStream = key[:(-1)*diffBytes]
-		i+=1
-		try:
-			print fixedXOR(tempKeyStream, encryption).decode("hex"), i
-		except:
+			print fixedXOR(tempKeyStream, encryption).decode("hex")
+		else:
 			print fixedXOR(tempKeyStream, encryption[:len(tempKeyStream)]).decode("hex") + " - Trimmed Cipher due to unavailability of enough data"

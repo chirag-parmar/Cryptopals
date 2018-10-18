@@ -8,7 +8,6 @@ def readFileandEncrypt(filename):
 
 	with open(filename, 'r') as myfile:
 		for line in myfile:
-			message = line.strip()
-			message = message.decode("base64").encode("hex")
+			message = line.decode("base64").encode("hex")
 			encrypted.append(AESCTRencrypt(key, message, 0))
 	return encrypted
