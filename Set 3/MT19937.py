@@ -1,75 +1,102 @@
 import ctypes
 
-#MT19937 constants
-w, n, m, r = (32, 624, 397, 31)
-a = 0x9908B0DF
-d = 0xFFFFFFFF
-b = 0x9D2C5680
-c = 0xEFC60000
-f = 0x6c078965
-u = 11
-s = 7
-t = 15 
-l = 18
+class MT19937:
 
-iterator = 0
+	def __init__(self, seed):
+		self.w = 32
+		self.n = 624
+		self.m = 397
+		self.a = 0x9908B0DF
+		self.d = 0xFFFFFFFF
+		self.b = 0x9D2C5680
+		self.c = 0xEFC60000
+		self.f = 0x6c078965
+		self.u = 11
+		self.s = 7
+		self.t = 15 
+		self.l = 18
 
-def initialize(seed):
-	if not type(seed) == type(1):
-		raise Exception("Seed must be of type Integer")
-	state = [seed]
+		self.iterator = 0
 
-	for i in range(1, n):
-		prev = state[-1]
-		curr = f * (prev^(prev >> (w-2))) + i
-		state.append(ctypes.c_uint32(curr).value)
+		self.state = []
 
-	state = regenerate(state)
+		if not type(seed) == type(1):
+			raise Exception("Seed must be of type Integer")
+		self.state = [seed]
 
-	return state
+		for i in range(1, self.n):
+			prev = self.state[-1]
+			curr = self.f * (prev^(prev >> (self.w-2))) + i
+			self.state.append(ctypes.c_uint32(curr).value)
 
-def regenerate(state):
-	global iterator
-
-	for i in xrange(624):
-		
-		y = state[i] & 0x80000000
-		y += state[(i + 1) % n] & 0x7fffffff
-		
-		z = state[(i + m) % n]
-		
-		state[i] = z^(y>>1)
-		
-		if y % 2:
-			state[i] ^= a
-
-	iterator = 0
-
-	return state
-
-def temper(state):
-	global iterator
-
-	if iterator>=n:
-		if iterator>n:
-			raise Exception("Unintialized State Array")
-		regenerate(state)
+		self.regenerate()
 	
-	y = state[iterator]
+	def reinitialize(self, seed):
+		
+		if not type(seed) == type(1):
+			raise Exception("Seed must be of type Integer")
 
-	y ^= ctypes.c_uint32(y>>u).value
-	y ^= ctypes.c_uint32((y<<s) & b).value
-	y ^= ctypes.c_uint32((y<<t) & c).value
-	y ^= ctypes.c_uint32(y>>l).value
+		self.state = []
+		self.state = [seed]
 
-	iterator += 1
+		for i in range(1, self.n):
+			prev = self.state[-1]
+			curr = self.f * (prev^(prev >> (self.w-2))) + i
+			self.state.append(ctypes.c_uint32(curr).value)
 
-	return y
+		self.regenerate()
+
+	def regenerate(self):
+		for i in range(self.w):
+			
+			y = self.state[i] & 0x80000000
+			y += self.state[(i + 1) % self.n] & 0x7fffffff
+			
+			z = self.state[(i + self.m) % self.n]
+			
+			self.state[i] = z^(y>>1)
+			
+			if y % 2:
+				self.state[i] ^= self.a
+
+		self.iterator = 0
+
+	def temper(self):
+
+		if self.iterator>=self.n:
+			if self.iterator>self.n:
+				raise Exception("Unintialized state Array")
+			self.regenerate()
+		
+		y = self.state[self.iterator]
+
+		y ^= (y>>self.u)
+		y ^= ((y<<self.s) & self.b)
+		y ^= ((y<<self.t) & self.c)
+		y ^= (y>>self.l)
+
+		self.iterator += 1
+
+		return ctypes.c_uint32(y).value
+
+	def setState(self, state):
+		self.state = state
+		self.iterator = 0
 
 if __name__ == "__main__":
-	state = initialize(0000)
+	mt = MT19937(0000)
 	randomSequence = ''
 	for i in range(0,500):
-		randomSequence += str(temper(state))
+		randomSequence += str(mt.temper())
 
 	print randomSequence
+
+
+
+
+
+
+
+
+
+

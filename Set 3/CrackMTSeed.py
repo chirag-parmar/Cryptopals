@@ -1,16 +1,16 @@
 from MT19937Oracle import generateOracle
-from MT19937 import initialize, temper
+from MT19937 import MT19937
 import time
 
 def crackTheSeed():
 	startTime = int(time.time())
 	randomOut = generateOracle()
-	print randomOut
 	endTime = int(time.time())
 
+	mt = MT19937(0)
 	for i in range(startTime, endTime+1):
-		state = initialize(i)
-		bruteOut = temper(state)
+		mt.reinitialize(i)
+		bruteOut = mt.temper()
 		if bruteOut == randomOut:
 			print "Found the seed: " + str(i)
 
